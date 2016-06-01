@@ -4,10 +4,11 @@ function validate(config) {
   }
 }
 
-export default () => {
+export default (argv) => {
   const config = {
-    DEBUG: process.env.NODE_ENV === 'development',
-    REGION: process.env.REGION,
+    REGION: argv.region,
+    VERBOSE: argv.verbose,
+    MARK_INACTIVE: !!argv['mark-inactive'],
   };
 
   validate(config);
