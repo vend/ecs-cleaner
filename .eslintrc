@@ -1,0 +1,36 @@
+{
+  "root": true,
+  "extends": "airbnb",
+  "rules": {
+    "react/jsx-quotes": 0,
+    "max-len": [1,
+      120,
+      2,
+      { "ignoreComments": true }
+    ],
+    "jsx-quotes": [2,
+      "prefer-double"
+    ],
+    "strict": [2,
+      "function"
+    ],
+    "no-param-reassign": 0,
+    "key-spacing": [2, {
+      "beforeColon": false,
+      "afterColon": true,
+      "mode": "minimum"
+    }],
+    "new-cap": [2, {
+      "capIsNew": false
+    }],
+    "indent": [2, 2, {
+      "SwitchCase": 1
+    }],
+    "no-unused-vars": [2, {
+      "vars": "local",
+      "args": "after-used",
+      "argsIgnorePattern": "^_.+$",
+      "varsIgnorePattern": "^(_.+|debug)$"
+    }]
+  }
+}
