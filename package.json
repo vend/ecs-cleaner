@@ -5,6 +5,7 @@
   "author": "dominic@vendhq.com",
   "license": "MIT",
   "main": "index.js",
+  "bin": { "ecs-task-cleaner" : "./index.js" },
   "repository": {
     "type": "git",
     "url": "git://github.com/vend/ecs-task-cleaner"
