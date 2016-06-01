@@ -15,7 +15,7 @@ Bottle.config.strict = true;
 deps.service('api', api, 'config', 'ecs');
 deps.service('argv', argv);
 deps.service('config', config, 'argv');
-deps.service('clean', clean, 'config', 'api', 'ecs');
+deps.service('clean', clean, 'config', 'api');
 deps.service('ecs', ecs, 'config');
 
 export default deps.container;

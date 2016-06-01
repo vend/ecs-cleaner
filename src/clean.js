@@ -7,7 +7,7 @@ const KEEP_LATEST_PER_FAMILY = 5;
 
 const debug = libdebug('ecs-task-cleaner:clean');
 
-export default (config, api, ecs) => {
+export default (config, api) => {
   function doClean() {
     const getActive = Promise.map(api.describeAllServices(), description => Api.getTaskDefinitionsFromServiceDescription(description))
       .then(_.flattenDeep)
