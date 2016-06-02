@@ -87,7 +87,7 @@ export default class EcsTaskCleanerApi {
 
     process.stdout.write(`Deactivating task definition ${defn}\n`);
 
-    return this.ecs.deregisterTaskDefinitionAsync({ taskDefinitionArn: defn })
+    return this.ecs.deregisterTaskDefinitionAsync({ taskDefinition: defn })
       .then(res => {
         debug('Got result from deactivate call', res);
         return Promise.resolve();
