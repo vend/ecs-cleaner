@@ -5,7 +5,11 @@ import _ from 'lodash';
 const debug = libdebug('ecs-task-cleaner:api');
 
 export default class EcsTaskCleanerApi {
+  /**
+   * @type runtimeConfig
+   */
   config;
+
   ecs;
 
   constructor(config, ecs) {
@@ -75,12 +79,19 @@ export default class EcsTaskCleanerApi {
       });
   }
 
-  deactivateTaskDefinition(defn) {
-    debug('Deactivating task definition', defn);
+  deregisterTaskDefinition(defn) {
+    if (!this.config.MARK_INACTIVE) {
+      debug('Would have deactivated task definition, but dry run', defn);
+      return Promise.resolve();
+    }
 
-    return Promise.resolve();
+    process.stdout.write(`Deactivating task definition ${defn}\n`);
 
-    // return ecs.deactivateTaskDefinition();
+    return this.ecs.deregisterTaskDefinitionAsync({ taskDefinitionArn: defn })
+      .then(res => {
+        debug('Got result from deactivate call', res);
+        return Promise.resolve();
+      });
   }
 
   /**

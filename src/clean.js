@@ -39,15 +39,13 @@ export default (config, api) => {
         process.stdout.write(`The full list of definitions to remove is:\n  ${candidates.join('\n  ')}\n`);
       }
 
-      debug(config.VERBOSE);
-
       if (config.MARK_INACTIVE) {
         process.stdout.write(`You specified --mark-inactive, so we're about to start actually inactivating these definitions\n`);
-        return Promise.map(candidates, api.deactivateTaskDefinition, { concurrency: 3 });
+      } else {
+        process.stdout.write(`You didn't specify --mark-inactive, so we're doing a dry run\n`);
       }
 
-      process.stdout.write(`You didn't specify --mark-inactive, so we're stopping here. (Dry-run)\n`);
-      return Promise.resolve();
+      return Promise.map(candidates, api.deregisterTaskDefinition.bind(api), { concurrency: 3 });
     });
   }
 

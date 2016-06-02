@@ -5,6 +5,10 @@ function validate(config) {
 }
 
 export default (argv) => {
+  /**
+   * @namespace runtimeConfig
+   * @type {{REGION: *, VERBOSE: boolean, MARK_INACTIVE: boolean}}
+   */
   const config = {
     REGION: argv.region,
     VERBOSE: argv.verbose,
