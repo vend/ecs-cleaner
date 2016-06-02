@@ -6,4 +6,5 @@ const debug = libdebug('ecs-task-cleaner:ecs');
 
 export default (config) => Promise.promisifyAll(new AWS.ECS({
   region: config.REGION,
+  max_retries: 3,
 }));

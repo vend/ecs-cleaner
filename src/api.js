@@ -88,10 +88,14 @@ export default class EcsTaskCleanerApi {
     process.stdout.write(`Deactivating task definition ${defn}\n`);
 
     return this.ecs.deregisterTaskDefinitionAsync({ taskDefinition: defn })
-      .then(res => {
-        debug('Got result from deactivate call', res);
-        return Promise.resolve();
-      });
+        .then(res => {
+          debug('Got result from deactivate call', res);
+          return Promise.resolve();
+        })
+        .catch(err => {
+          debug(err.constructor.name);
+          debug(err);
+        });
   }
 
   /**

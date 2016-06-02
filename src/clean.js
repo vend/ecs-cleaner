@@ -45,7 +45,7 @@ export default (config, api) => {
         process.stdout.write(`You didn't specify --mark-inactive, so we're doing a dry run\n`);
       }
 
-      return Promise.map(candidates, api.deregisterTaskDefinition.bind(api), { concurrency: 3 });
+      return Promise.map(candidates, api.deregisterTaskDefinition.bind(api), { concurrency: 2 });
     });
   }
 
