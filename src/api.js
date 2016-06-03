@@ -5,16 +5,17 @@ import _ from 'lodash';
 const debug = libdebug('ecs-cleaner:api');
 
 export default class EcsTaskCleanerApi {
-  /**
-   * @type runtimeConfig
-   */
   config;
-
   ecs;
+  apply = false;
 
   constructor(config, ecs) {
     this.config = config;
     this.ecs = ecs;
+  }
+
+  setApply(apply) {
+    this.apply = apply;
   }
 
   /**
@@ -80,8 +81,8 @@ export default class EcsTaskCleanerApi {
   }
 
   deregisterTaskDefinition(defn) {
-    if (!this.config.MARK_INACTIVE) {
-      debug('Would have deactivated task definition, but dry run', defn);
+    if (!this.apply) {
+      debug('Would have deactivated task definition, but doing a dry run', defn);
       return Promise.resolve();
     }
 
@@ -102,7 +103,7 @@ export default class EcsTaskCleanerApi {
    * @param {object} description
    * @returns {String[]}
    */
-  static getTaskDefinitionsFromServiceDescription(description) {
+  getTaskDefinitionsFromServiceDescription(description) {
     const defns = [description.taskDefinition];
 
     if (description.deployments) {

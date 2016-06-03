@@ -37,7 +37,7 @@ export class Log {
 
   static log(message, level = 2, ...context) {
     if (level > Log.level) {
-      console.log('Log omitted', level, ' is gt ', Log.level);
+      // console.log('Log omitted because', level, 'is gt', Log.level);
       return;
     }
 

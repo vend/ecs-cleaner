@@ -42,21 +42,19 @@ Cleans stale ECS tasks. Stale is considered to be:
 ##### Examples
 
 ```sh
-$ ecs-cleaner ecs-task                  # Do a dry run against $AWS_DEFAULT_REGION
-$ ecs-cleaner ecs-task -r us-west-2     # Override the region
-$ ecs-cleaner ecs-task -v               # Dry run, plus list out every task considered stale
-$ ecs-cleaner ecs-task --mark-inactive  # Actually mark stale tasks as inactive
-$ DEBUG=* ecs-cleaner                   # With debug output
+$ ecs-cleaner ecs-task                              # Dry run
+$ ecs-cleaner ecs-task -v                           # Dry run, plus list out every task considered stale
+$ ecs-cleaner ecs-task --apply                      # Actually mark stale tasks as inactive
+$ DEBUG='ecs-cleaner:*' ecs-cleaner ecs-task -vvv   # With extra-verbose debugging output
 ```
 
 ##### Example Output
 
 ```
-$ ecs-cleaner -r us-west-2
-
-Considering 1662 task definitions for removal
-
-The following task definitions will NOT be removed, because they are in use:
+$ ecs-cleaner ecs-task
+[notice] Getting task definitions from AWS API
+[notice] Considering 151 task definitions for removal
+[info] The following task definitions will NOT be removed, because they are in use:
   arn:aws:ecs:us-west-2:123456789:task-definition/abacus:163
   arn:aws:ecs:us-west-2:123456789:task-definition/banana:315
   arn:aws:ecs:us-west-2:123456789:task-definition/carrot:16
@@ -66,10 +64,22 @@ The following task definitions will NOT be removed, because they are in use:
   arn:aws:ecs:us-west-2:123456789:task-definition/great:3
   arn:aws:ecs:us-west-2:123456789:task-definition/something:26
   arn:aws:ecs:us-west-2:123456789:task-definition/woop:54
-Which means we are only considering 1639 task definitions
-
-Furthermore, we don't remove task definitions among the newest 5 per family
-Which means we are only considering 1525 task definitions
-
-You didn't specify --mark-inactive, so we're stopping here. (Dry-run)
+[notice] After active definition filtering, 127 remain
+[info] Furthermore, we don't remove task definitions among the newest 5 per family
+[notice] After family filtering, 12 remain
+[info] The full list of definitions to remove is:
+  arn:aws:ecs:us-west-2:123456789:task-definition/abacus:155
+  arn:aws:ecs:us-west-2:123456789:task-definition/abacus:154
+  arn:aws:ecs:us-west-2:123456789:task-definition/banana:305
+  arn:aws:ecs:us-west-2:123456789:task-definition/carrot:9
+  arn:aws:ecs:us-west-2:123456789:task-definition/carrot:10
+  arn:aws:ecs:us-west-2:123456789:task-definition/drink:21
+  arn:aws:ecs:us-west-2:123456789:task-definition/events:24
+  arn:aws:ecs:us-west-2:123456789:task-definition/flip:81
+  arn:aws:ecs:us-west-2:123456789:task-definition/something:20
+  arn:aws:ecs:us-west-2:123456789:task-definition/something:21
+  arn:aws:ecs:us-west-2:123456789:task-definition/woop:48
+  arn:aws:ecs:us-west-2:123456789:task-definition/woop:49
+[notice] You didn't specify --apply, so we're doing a dry run
+[notice] All done!
 ```

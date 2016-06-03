@@ -91,7 +91,7 @@ deps.container.cli.commands.forEach((service) => {
 
       Log.setLevel(2 + argv.verbose - argv.quiet);
 
-      return Promise.resolve(original(argv))
+      return original(argv)
         .then(() => {
           log.notice('All done!');
           process.exit(0);

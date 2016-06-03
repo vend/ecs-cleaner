@@ -12,31 +12,22 @@ export const describe = 'Marks stale and unused ECS tasks as inactive';
 
 export function builder() {
   return yargs => yargs
-    .option('r', {
-      alias: 'region',
-      required: false,
-      requiresArg: true,
-      describe: 'The AWS region to run in',
-      type: 'string',
-    })
-    .option('i', {
-      alias: 'mark-inactive',
+    .option('a', {
+      alias: 'apply',
       default: false,
-      describe: 'Actually mark the task definitions inactive (default is to dry-run)',
+      describe: 'Actually apply the operation (default is a dry run)',
       type: 'boolean',
-    })
-    .check((parsed) => {
-      if (!parsed.region && !process.env.AWS_DEFAULT_REGION) {
-        throw new Error('You must supply a region with --region, or set AWS_DEFAULT_REGION');
-      }
-
-      return true;
     });
 }
 
 export function handler(config, log, api) {
-  function doClean() {
-    const getActive = Promise.map(api.describeAllServices(), description => Api.getTaskDefinitionsFromServiceDescription(description))
+  return (argv) => {
+    log.notice('Getting task definitions from AWS API');
+
+    const getActive = Promise.map(
+      api.describeAllServices(),
+      description => api.getTaskDefinitionsFromServiceDescription(description)
+    )
       .then(_.flattenDeep)
       .then(_.uniq)
       .then(a => a.sort());
@@ -44,15 +35,15 @@ export function handler(config, log, api) {
     const getCandidates = api.getCandidateTaskDefinitions();
 
     return Promise.join(getCandidates, getActive, (candidates, active) => {
-      process.stdout.write(`Considering ${candidates.length} task definitions for removal\n\n`);
+      log.notice(`Considering ${candidates.length} task definitions for removal`);
 
       // Filter for active
-      process.stdout.write(`The following task definitions will NOT be removed, because they are in use:\n  ${active.join('\n  ')}\n`);
+      log.info(`The following task definitions will NOT be removed, because they are in use:\n  ${active.join('\n  ')}`);
       candidates = _.difference(candidates, active);
-      process.stdout.write(`Which means we are only considering ${candidates.length} task definitions\n\n`);
+      log.notice(`After active definition filtering, ${candidates.length} remain`);
 
       // Filter for latest per family
-      process.stdout.write(`Furthermore, we don't remove task definitions among the newest ${KEEP_LATEST_PER_FAMILY} per family\n`);
+      log.info(`Furthermore, we don't remove task definitions among the newest ${KEEP_LATEST_PER_FAMILY} per family`);
       const byFamily = _.groupBy(candidates, v => v.match(/^([^/]+)\/([A-Za-z0-9_-]+):([0-9]+)$/)[2]);
 
       Object.keys(byFamily).forEach((family) => {
@@ -60,28 +51,17 @@ export function handler(config, log, api) {
       });
 
       candidates = _.flatten(_.values(byFamily));
-      process.stdout.write(`Which means we are only considering ${candidates.length} task definitions\n\n`);
+      log.notice(`After family filtering, ${candidates.length} remain`);
 
-      if (config.VERBOSE > 0) {
-        process.stdout.write(`The full list of definitions to remove is:\n  ${candidates.join('\n  ')}\n`);
-      }
+      log.info(`The full list of definitions to remove is:\n  ${candidates.join('\n  ')}`);
 
-      if (config.MARK_INACTIVE) {
-        process.stdout.write(`You specified --mark-inactive, so we're about to start actually inactivating these definitions\n`);
+      if (argv.apply) {
+        log.notice("You specified --apply, so we're about to start actually inactivating these definitions");
       } else {
-        process.stdout.write(`You didn't specify --mark-inactive, so we're doing a dry run\n`);
+        log.notice('You didn\'t specify --apply, so we\'re doing a dry run');
       }
 
       return Promise.map(candidates, api.deregisterTaskDefinition.bind(api), { concurrency: 2 });
     });
-  }
-
-  return (argv) => {
-    return doClean()
-      .then(() => process.exit(0))
-      .catch((err) => {
-        process.stderr.write(err.stack);
-        process.exit(1);
-      });
   };
-};
+}
