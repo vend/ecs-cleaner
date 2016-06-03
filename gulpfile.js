@@ -40,17 +40,18 @@ function mkdirp(dir) {
     });
 }
 
-gulp.task('default', sequence('clean', 'createBuildDir', 'build', 'lint'));
+gulp.task('default', ['build']);
+gulp.task('build', sequence('clean', 'createBuildDir', 'babel', 'lint'));
 
 gulp.task('clean', () => del(PATHS.build.dest));
 gulp.task('createBuildDir', () => mkdirp(PATHS.build.dest));
 
-gulp.task('build', () => gulp.src(PATHS.js.src)
+gulp.task('babel', () => gulp.src(PATHS.js.src)
     .pipe(debug({ title: 'build' }))
     .pipe(sourcemaps.init())
     .pipe(babel())
     .pipe(sourcemaps.write('.'))
-    .on('error', gutil.log.bind(gutil, 'Browserify error'))
+    .on('error', gutil.log.bind(gutil, 'Babel error'))
     .pipe(gulp.dest(PATHS.js.dest))
 );
 
@@ -60,5 +61,5 @@ gulp.task('lint', () => gulp.src(PATHS.js.src)
 );
 
 gulp.task('watch', ['build'], () => {
-  gulp.watch(PATHS.js.src, ['build', 'lint']);
+  gulp.watch(PATHS.js.src, ['babel', 'lint']);
 });

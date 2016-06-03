@@ -1,4 +1,4 @@
-# ecs-task-cleaner
+# ecs-cleaner
 
 Cleans up stale task definitions from ECS.
 
@@ -9,22 +9,22 @@ Where "stale" means:
 ## Installing
 
 ```sh
-npm install -g git+ssh://git@github.com/vend/ecs-task-cleaner.git#release
+npm install -g git+ssh://git@github.com/vend/ecs-cleaner.git#release
 ```
 
 ## Usage
 
 ```sh
-$ ecs-task-cleaner -r us-west-2                  # dry-run
-$ ecs-task-cleaner -r us-west-2 -v               # list out every task considered stale (still dry-run)
-$ ecs-task-cleaner -r us-west-2 --mark-inactive  # actually mark stale tasks as inactive
-$ DEBUG=* ecs-task-cleaner -r us-west-2          # with debug output
+$ ecs-cleaner -r us-west-2                  # dry-run
+$ ecs-cleaner -r us-west-2 -v               # list out every task considered stale (still dry-run)
+$ ecs-cleaner -r us-west-2 --mark-inactive  # actually mark stale tasks as inactive
+$ DEBUG=* ecs-cleaner -r us-west-2          # with debug output
 ```
 
 ## Example Output
 
 ```
-$ ecs-task-cleaner -r us-west-2
+$ ecs-cleaner -r us-west-2
 
 Considering 1662 task definitions for removal
 

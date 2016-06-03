@@ -10,6 +10,10 @@
     "type": "git",
     "url": "git://github.com/vend/ecs-task-cleaner"
   },
+  "scripts": {
+    "build": "gulp build",
+    "test": "gulp test"
+  },
   "dependencies": {
     "aws-sdk": "^2.3.16",
     "bluebird": "^3.4.0",
