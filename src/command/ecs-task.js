@@ -1,13 +1,40 @@
 import libdebug from 'debug';
 import Promise from 'bluebird';
 import _ from 'lodash';
-import Api from './api';
+import Api from './../api';
+
+const debug = libdebug('ecs-cleaner:command:clean');
 
 const KEEP_LATEST_PER_FAMILY = 5;
 
-const debug = libdebug('ecs-task-cleaner:clean');
+export const command = 'ecs-task';
+export const describe = 'Marks stale and unused ECS tasks as inactive';
 
-export default (config, api) => {
+export function builder() {
+  return yargs => yargs
+    .option('r', {
+      alias: 'region',
+      required: false,
+      requiresArg: true,
+      describe: 'The AWS region to run in',
+      type: 'string',
+    })
+    .option('i', {
+      alias: 'mark-inactive',
+      default: false,
+      describe: 'Actually mark the task definitions inactive (default is to dry-run)',
+      type: 'boolean',
+    })
+    .check((parsed) => {
+      if (!parsed.region && !process.env.AWS_DEFAULT_REGION) {
+        throw new Error('You must supply a region with --region, or set AWS_DEFAULT_REGION');
+      }
+
+      return true;
+    });
+}
+
+export function handler(config, log, api) {
   function doClean() {
     const getActive = Promise.map(api.describeAllServices(), description => Api.getTaskDefinitionsFromServiceDescription(description))
       .then(_.flattenDeep)
@@ -49,10 +76,12 @@ export default (config, api) => {
     });
   }
 
-  return () => doClean()
-    .then(() => process.exit(0))
-    .catch((err) => {
-      process.stderr.write(err.stack);
-      process.exit(1);
-    });
+  return (argv) => {
+    return doClean()
+      .then(() => process.exit(0))
+      .catch((err) => {
+        process.stderr.write(err.stack);
+        process.exit(1);
+      });
+  };
 };

@@ -1,14 +1,14 @@
 {
-  "name": "ecs-task-cleaner",
+  "name": "ecs-cleaner",
   "version": "0.0.1",
   "description": "A CLI task to clean stale task definitions from ECS",
   "author": "dominic@vendhq.com",
   "license": "MIT",
   "main": "index.js",
-  "bin": { "ecs-task-cleaner" : "./index.js" },
+  "bin": { "ecs-cleaner" : "./index.js" },
   "repository": {
     "type": "git",
-    "url": "git://github.com/vend/ecs-task-cleaner"
+    "url": "git://github.com/vend/ecs-cleaner"
   },
   "scripts": {
     "build": "gulp build",

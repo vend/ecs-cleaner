@@ -2,7 +2,7 @@ import libdebug from 'debug';
 import Promise from 'bluebird';
 import _ from 'lodash';
 
-const debug = libdebug('ecs-task-cleaner:api');
+const debug = libdebug('ecs-cleaner:api');
 
 export default class EcsTaskCleanerApi {
   /**

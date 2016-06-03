@@ -1,27 +1,55 @@
 # ecs-cleaner
 
-Cleans up stale task definitions from ECS.
-
-Where "stale" means:
-  * Not used by a service definition, nor an in-progress deployment
-  * Not in the most recent five task definitions either
+Cleans up stale task definitions and images from ECS and ECR.
 
 ## Installing
+
+Installing ecs-cleaner from NPM is pretty easy:
 
 ```sh
 npm install -g git+ssh://git@github.com/vend/ecs-cleaner.git#release
 ```
 
+The only thing to note if you're trying something more adventurous is that you'll probably
+ want a version of the code that has the 'dist' directory pre-built (so you can run on non-ES6 runtimes.)
+
 ## Usage
 
-```sh
-$ ecs-cleaner -r us-west-2                  # dry-run
-$ ecs-cleaner -r us-west-2 -v               # list out every task considered stale (still dry-run)
-$ ecs-cleaner -r us-west-2 --mark-inactive  # actually mark stale tasks as inactive
-$ DEBUG=* ecs-cleaner -r us-west-2          # with debug output
+```
+$ ecs-cleaner --help
+Usage: ecs-cleaner <command> [options]
+
+Commands:
+  ecs-task  Marks stale and unused ECS tasks as inactive
+
+Options:
+  --verbose, -v  Output more information (provide multiple times for more noise)
+                                                                         [count]
+  --quiet, -q    Output less information (provide multiple times for less noise)
+                                                                         [count]
+  --help         Show help                                             [boolean]
 ```
 
-## Example Output
+### Subcommands
+
+#### ecs-task
+
+Cleans stale ECS tasks. Stale is considered to be:
+
+ * Not one of the most recent five builds per-family
+ * Not in use by a running service in ECS
+
+##### Examples
+
+```sh
+$ ecs-cleaner ecs-task                  # Do a dry run against $AWS_DEFAULT_REGION
+$ ecs-cleaner ecs-task -r us-west-2     # Override the region
+$ ecs-cleaner ecs-task -v               # Dry run, plus list out every task considered stale
+$ ecs-cleaner ecs-task --mark-inactive  # Actually mark stale tasks as inactive
+$ DEBUG=* ecs-cleaner                   # With debug output
+```
+
+##### Example Output
 
 ```
 $ ecs-cleaner -r us-west-2
