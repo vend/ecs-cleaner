@@ -21,6 +21,7 @@ Usage: ecs-cleaner <command> [options]
 
 Commands:
   ecs-task  Marks stale and unused ECS tasks as inactive
+  ecr       Removes stale and unused ECR images
 
 Options:
   --verbose, -v  Output more information (provide multiple times for more noise)
@@ -30,25 +31,26 @@ Options:
   --help         Show help                                             [boolean]
 ```
 
-### Subcommands
+## Sub-Commands
 
-#### ecs-task
+### ecs-task
 
-Cleans stale ECS tasks. Stale is considered to be:
+Cleans stale ECS tasks. Tasks are considered to be stale if:
 
- * Not one of the most recent five builds per-family
- * Not in use by a running service in ECS
+ * They're not one of the most recent five builds per-family, and
+ * They're not in use by a running service in ECS
 
-##### Examples
+#### Examples
 
 ```sh
 $ ecs-cleaner ecs-task                              # Dry run
 $ ecs-cleaner ecs-task -v                           # Dry run, plus list out every task considered stale
 $ ecs-cleaner ecs-task --apply                      # Actually mark stale tasks as inactive
+$ ecs-cleaner ecs-task --help                       # See usage information
 $ DEBUG='ecs-cleaner:*' ecs-cleaner ecs-task -vvv   # With extra-verbose debugging output
 ```
 
-##### Example Output
+#### Example Output
 
 ```
 $ ecs-cleaner ecs-task
@@ -82,4 +84,25 @@ $ ecs-cleaner ecs-task
   arn:aws:ecs:us-west-2:123456789:task-definition/woop:49
 [notice] You didn't specify --apply, so we're doing a dry run
 [notice] All done!
+```
+
+---
+
+### ecr
+
+Cleans stale ECR images from a single repository, specified by name. Images are considered stale if:
+  * They aren't in use by an active ECS task definition, and
+  * They are older than the configurable number of days (default 14 days)
+
+#### Examples
+
+```sh
+$ ecs-cleaner ecr repo_name     # Dry run against repo_name in $AWS_DEFAULT_REGION
+$ ecs-cleaner ecr --help        # Get usage information
+```
+
+#### Example Output
+
+```
+TBD
 ```

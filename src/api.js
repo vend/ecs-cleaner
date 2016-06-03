@@ -6,12 +6,23 @@ const debug = libdebug('ecs-cleaner:api');
 
 export default class EcsTaskCleanerApi {
   config;
+
+  /**
+   * @type {AWS.ECS}
+   */
   ecs;
+
+  /**
+   * @type {AWS.ECR}
+   */
+  ecr;
+
   apply = false;
 
-  constructor(config, ecs) {
+  constructor(config, ecs, ecr) {
     this.config = config;
     this.ecs = ecs;
+    this.ecr = ecr;
   }
 
   setApply(apply) {
@@ -66,6 +77,12 @@ export default class EcsTaskCleanerApi {
       .then(_.flattenDeep);
   }
 
+  /**
+   * Gets basically all task definitions in an account
+   *
+   * @param nextToken
+   * @returns {Promise.<Object[]>}
+   */
   getCandidateTaskDefinitions(nextToken = null) {
     debug('Getting candidate task definitions', nextToken ? 'paging' : 'first-page');
 
@@ -115,5 +132,37 @@ export default class EcsTaskCleanerApi {
     }
 
     return defns;
+  }
+
+  getActiveTaskDefinitions() {
+    return Promise.map(
+      this.describeAllServices(),
+      this.getTaskDefinitionsFromServiceDescription
+    )
+      .then(_.flattenDeep)
+      .then(_.uniq)
+      .then(a => a.sort());
+  }
+
+  getImagesInActiveTaskDefinitions() {
+    const mapDefinitionToImages = (defn) => {
+      return _.chain(defn.containerDefinitions.map(c => c.image)).flattenDeep().value();
+    };
+
+    return Promise.map(this.getActiveTaskDefinitions(), this.describeTaskDefinition.bind(this))
+      .then(defns => Promise.map(defns, mapDefinitionToImages))
+      .then(_.flattenDeep)
+      .then(_.uniq)
+      .then(a => a.sort());
+  }
+
+  describeTaskDefinition(defn) {
+    return this.ecs.describeTaskDefinitionAsync({ taskDefinition: defn })
+      .then(res => res.taskDefinition);
+  }
+
+  describeRepositories(...names) {
+    return this.ecr.describeRepositoriesAsync({ repositoryNames: names })
+      .then(res => res.repositories);
   }
 }

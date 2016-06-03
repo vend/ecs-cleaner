@@ -23,6 +23,7 @@ export function builder() {
 export function handler(config, log, api) {
   return (argv) => {
     log.notice('Getting task definitions from AWS API');
+    api.setApply(!!argv.apply);
 
     const getActive = Promise.map(
       api.describeAllServices(),
