@@ -37,6 +37,7 @@ node('trusty && vendci') {
                     secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                 ]]) {
                     def commit = doCheckout()
+                    def branch = env.BRANCH_NAME
                     def tag = "${ECR_REGISTRY}/${ECR_REPO}:${commit}"
 
                     withEnv([
@@ -49,9 +50,9 @@ node('trusty && vendci') {
                         doPush(tag)
 
                         sh "env | grep master"
-                        echo env
+                        echo "Branch name is ${branch}"
 
-                        if (env.BRANCH_NAME == 'master') {
+                        if (branch == 'master') {
                             doPromote(tag)
                         }
                     }
