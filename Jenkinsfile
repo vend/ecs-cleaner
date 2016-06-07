@@ -5,11 +5,13 @@ final def String ECR_REGION   = 'us-west-2'  // For the above repo, not for the 
 def doCheckout() {
     stage 'checkout'
     checkout scm
+
+    sh 'env | grep master'
 }
 
 def doBuild(tag) {
     stage 'build'
-    sh "set +x && docker build -t ${tag} ."
+    sh "docker build -t ${tag} ."
 }
 
 def doPush(tag) {
