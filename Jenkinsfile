@@ -16,7 +16,7 @@ def doBuild(tag) {
 
 def doPush(tag) {
     stage 'push'
-    sh 'eval $(aws ecr get-login)'
+    sh './ci/ecr-login'
     sh "docker push $tag"
 }
 
