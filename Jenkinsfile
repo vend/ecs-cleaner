@@ -42,10 +42,11 @@ def String readIn(command, tmpfile) {
 
 def doBuild(tag) {
     stage 'build'
-    sh "docker build -t ${tag} ." //
+    sh "docker build -t ${tag} . . . ." //
 }
 
 def doPush(tag) {
     stage 'push'
+    sh 'eval $(aws ecr get-login)'
     sh "docker push $tag"
 }
