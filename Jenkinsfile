@@ -30,5 +30,5 @@ def doCheckout() {
 }
 
 def doBuild() {
-    sh "docker build -t $GIT_COMMIT ."
+    sh 'docker build -t $GIT_COMMIT .'
 }
