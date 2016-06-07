@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+#
+# _color: version 0.0.2
+#
+# TL;DR: does the right thing, and disables color for non-interactive terminals
+#
+# Overriding:
+#  - add color on non-interactive term: _c_interactive=0 ./script
+#  - add color on non-supporting term:  TERM=linux ./script
+#  - remove color on interactive term:  _c_interactive=-1 ./script
+#                                  or:  TERM=dumb ./script
+#                                  or:  unset TERM; ./script
+#  - change TERM used just for color:   _c_term='-Tlinux' ./script
+
+[[ $- = *e* ]]; olde=$?
+set +e
+
+# Decides whether we are running in an interactive terminal
+#
+# Terminal is:
+#  - Considered interactive if _c_interactive is already defined as true
+#  - Considered interactive if `tty` is installed, and `tty -s` returns 0
+#  - Otherwise, not interactive
+#
+# Returns 0 for true, any other value for false
+c_decide_interactive() {
+  if [ -n "$_c_interactive" ]; then
+    return $_c_interactive
+  fi
+
+  hash tty > /dev/null 2>&1
+  if [[ $? -eq 0 ]]; then
+    tty -s
+    return $? # 0 for terminal is connected
+  else
+    return -1 # false
+  fi
+}
+
+# Decides whether color should be enabled
+#
+#  - If the terminal is not interactive, no color
+#  - If tput is not available, no color
+#  - If no $TERM is set, and _c_term is not set, no color
+#  - Otherwise, color should be enabled
+#
+# Returns 0 for color, any other value for no color
+c_decide_color() {
+  if ! c_decide_interactive; then
+    return 1
+  fi
+
+  hash tput > /dev/null 2>&1
+  if [ $? -ne 0 ]; then
+    return 2
+  fi
+
+  if [[ ( -z "$TERM" || "$TERM" == "dumb" ) && -z "$_c_term" ]]; then
+    return 3
+  fi
+
+  # Color should be enabled
+  return 0
+}
+
+# Actually defines the color variables
+c_define_color() {
+    c_normal=`tput  $_c_term op 2>/dev/null`
+    c_reverse=`tput $_c_term rev 2>/dev/null`
+    c_reset=`tput   $_c_term sgr0 2>/dev/null`
+    c_bold=`tput    $_c_term bold 2>/dev/null`
+
+    c_black=`tput   $_c_term setaf 0 2>/dev/null || tput $_c_term setf 0 2>/dev/null`
+    c_red=`tput     $_c_term setaf 1 2>/dev/null || tput $_c_term setf 4 2>/dev/null`
+    c_green=`tput   $_c_term setaf 2 2>/dev/null || tput $_c_term setf 2 2>/dev/null`
+    c_yellow=`tput  $_c_term setaf 3 2>/dev/null || tput $_c_term setf 6 2>/dev/null`
+    c_blue=`tput    $_c_term setaf 4 2>/dev/null || tput $_c_term setf 1 2>/dev/null`
+    c_magenta=`tput $_c_term setaf 5 2>/dev/null || tput $_c_term setf 5 2>/dev/null`
+    c_cyan=`tput    $_c_term setaf 6 2>/dev/null || tput $_c_term setf 3 2>/dev/null`
+    c_white=`tput   $_c_term setaf 7 2>/dev/null || tput $_c_term setf 7 2>/dev/null`
+
+    c_bright_red=`tput $_c_term setaf 9 2>/dev/null`
+    c_orange=$c_bright_red # solarized specific alias
+
+    c_bright_magenta=`tput $_c_term setaf 13 2>/dev/null`
+    c_violet=$c_bright_magenta
+}
+
+# Just for debugging
+c_print_colours() {
+  for i in normal bold; do
+    eval echo -en $`echo "c_$i"`
+    echo "--- $i: ---"
+    for c in red orange yellow green cyan blue violet magenta black white; do
+      eval echo -en $`echo "c_$c"`
+      echo $c
+    done
+    echo $c_reset
+  done
+}
+
+# Only define once
+if [[ -z "$c_defined" ]]; then
+  if c_decide_color; then
+    c_define_color
+    c_defined=0
+  else
+    c_defined=-1
+  fi
+fi
+
+(( $olde )) || set -e

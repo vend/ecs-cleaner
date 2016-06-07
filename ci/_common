@@ -1,0 +1,183 @@
+#!/usr/bin/env bash
+#
+# _common: version 0.0.3
+#
+# Version is cut down to only container relevant helpers
+
+DIR="${BASH_SOURCE%/*}"
+if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
+source "$DIR/_color"
+
+set -e
+
+# Takes an array of PIDs, waits on them all, escalates failures
+function joinWait () {
+  for pid in "$@"; do
+    info "Waiting for subprocess $pid..."
+    wait $pid
+    status=$?
+
+    if [[ $status -ne 0 ]]; then
+      fail "Subprocess $pid failed with exit code $status"
+    fi
+  done
+}
+
+function ensureGitShort() {
+  if [[ -z "$GIT_SHORT" ]]; then
+    if [[ -z "$GIT_COMMIT" ]]; then
+      fail "You must define the GIT_COMMIT environment variable"
+    fi
+
+    GIT_SHORT=${GIT_COMMIT:0:7}
+  fi
+}
+
+# Creates the build output dir
+function ensureBuildDir () {
+  mkdir -p build/artifacts
+  mkdir -p build/sql
+}
+
+# Outputs information about a status, returns the status
+function checkStatus () {
+  status=$1
+  operation=$2
+  component=$3
+  logfile=$4
+  required=${5:-0}
+
+  (
+    set +e
+
+    if [[ $1 -eq 0 ]]; then
+      ok "$operation of $component succeeded - see $logfile for full log"
+    else
+      info "Last lines of $logfile:"
+      tail -n 20 $logfile
+
+      if [ $required -eq 0 ]; then
+        fail "$operation of $component failed - see $logfile for full log"
+      else
+        warning "$operation of $component failed - see $logfile for full log"
+      fi
+    fi
+
+    return $status
+  )
+}
+
+# Runs a command, checks its status
+function step () {
+  [[ $- = *e* ]]; olde=$?
+  set +e
+
+  command=${1:-/bin/true}
+  operation=${2:-operation}
+  component=${3:-component}
+  retries=${4:-0}
+  required=${5:-0}
+  attempt=1
+
+  logfile="build/${operation}-${component}.log"
+  log="Running: $command"
+
+  if [[ -n "$!" ]]; then
+    log+=" as $!"
+  else
+    log+=" in foreground"
+  fi
+
+  info "$log"
+
+  eval $command > $logfile 2>&1
+  errcode=$?
+
+  while [[ $errcode -gt 0 && $attempt -lt $retries ]]; do
+    let attempt=$attempt+1
+    warning "$operation of $component failed - retrying in $attempt seconds"
+    sleep $attempt # exponential wait before retrying
+    eval $command > $logfile 2>&1
+    errcode=$?
+  done
+
+  checkStatus $errcode $operation $component $logfile $required
+
+  (( $olde )) || set -e
+  return $errcode
+}
+
+function osfamily() {
+  case $OSTYPE in
+    darwin*)
+      echo 'darwin'
+      ;;
+    linux*)
+      echo 'linux'
+      ;;
+    *)
+      echo 'unknown'
+      ;;
+  esac
+}
+
+function mtime() {
+  case $(osfamily) in
+    darwin)
+      stat -f %m $1
+      ;;
+    linux|*)
+      stat -c %Y $1
+      ;;
+  esac
+}
+
+function isVersionGreaterOrEqual() {
+  expected_greater_version=$1
+  expected_lesser_version=$2
+  check=$(python -c "from distutils.version import LooseVersion; print LooseVersion('$expected_greater_version') >= LooseVersion('$expected_lesser_version')")
+  [ "$check" == 'True' ]
+}
+
+function executeOnOsFamily() {
+  if [[ $(osfamily) != $1 ]]; then
+    return 0
+  fi
+
+  shift
+
+  info "About to execute '$@' on your machine..."
+  step "$@"
+}
+
+# Output functions
+
+function fail () {
+  wait
+
+  if [[ -z "$1" ]]; then
+    1="Script failed for unknown reason"
+  fi
+
+  sleep 0.1 # Just for output consistency
+
+  echo "    ${c_red}FAILED:${c_reset} $1" >&2
+  echo "Exiting."
+  exit 63
+}
+
+function warning() {
+  echo "    ${c_yellow}WARNING:${c_reset} $1" >&2
+}
+
+function info() {
+  echo "    ${c_cyan}INFO:${c_reset} $1"
+}
+
+function ok () {
+  echo "    ${c_green}OK:${c_reset} $1"
+}
+
+function banner() {
+  echo "${c_bold}$1${c_reset}"
+}
