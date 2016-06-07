@@ -1,7 +1,5 @@
 node('trusty && vendci') {
     wrap([$class: 'AnsiColorBuildWrapper']) {
-        echo "\u001B[31mI'm Red\u001B[0m Now not"
-
         wrap([$class: 'TimestamperBuildWrapper']) {
             sshagent(['80e76a2a-650e-4027-a4cd-f19bb4c9a439']) {
                 withCredentials([[
@@ -25,7 +23,7 @@ def doCheckout() {
     stage 'checkout'
     checkout scm
 
-    sh('git rev-parse HEAD > GIT_COMMIT')
+    sh('git rev-parse HEAD | head -c 7 > GIT_COMMIT')
     return readFile('GIT_COMMIT')
 }
 
