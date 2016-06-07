@@ -15,15 +15,15 @@ def doBuild(tag) {
     sh "docker build -t ${tag} ."
 }
 
-def doPush(tag) {
+def doPush(String tag) {
     stage 'push'
     sh './ci/ecr-login'
     sh "docker push $tag"
 }
 
 def doPromote(tag) {
+    stage 'promote'
     sh "docker tag ${tag} master"
-    sh "docker push master"
 }
 
 node('trusty && vendci') {
@@ -49,11 +49,9 @@ node('trusty && vendci') {
                         doBuild(tag)
                         doPush(tag)
 
-                        sh "env | grep master"
-                        echo "Branch name is ${branch}"
-
                         if (branch == 'master') {
                             doPromote(tag)
+                            doPush('master')
                         }
                     }
                 }
