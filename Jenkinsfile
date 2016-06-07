@@ -19,7 +19,7 @@ node('trusty && vendci') {
 
                     withEnv(["GIT_COMMIT=${commit}", "GIT_BRANCH=${branch}"]) {
                         def tag = "${ECR_REGISTRY}/${ECR_REPO}:${commit}"
-                        echo "Building ${tag}"
+                        echo "Building for ${branch}/${commit}: ${tag}"
 
                         doBuild(tag)
                         doPush(tag)
@@ -43,6 +43,7 @@ def String readIn(command, tmpfile) {
 def doBuild(tag) {
     stage 'build'
     echo "WTF . . . ."
+    echo "set +x && docker build -t ${tag} . . . .  #wtf "
     sh "set +x && docker build -t ${tag} . . . .  #wtf "
 }
 
