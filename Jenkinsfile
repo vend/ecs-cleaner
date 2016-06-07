@@ -1,6 +1,6 @@
-final def String ECR_REGISTRY = '542640492856.dkr.ecr.us-west-2.amazonaws.com'
-final def String ECR_REPO     = 'ecs-cleaner'
-final def String ECR_REGION   = 'us-west-2'  // For the above repo, not for the clean target
+final String ECR_REGISTRY = '542640492856.dkr.ecr.us-west-2.amazonaws.com'
+final String ECR_REPO     = 'ecs-cleaner'
+final String ECR_REGION   = 'us-west-2'  // For the above repo, not for the clean target
 
 def doCheckout() {
     stage 'checkout'
