@@ -23,7 +23,8 @@ def doPush(String tag) {
 
 def doPromote(tag) {
     stage 'promote'
-    sh "docker tag ${tag} master"
+    sh "docker tag ${tag} ${ECR_REGISTRY}/${ECR_REPO}:master"
+    sh "docker push ${ECR_REGISTRY}/${ECR_REPO}:master"
 }
 
 node('trusty && vendci') {
@@ -51,7 +52,6 @@ node('trusty && vendci') {
 
                         if (branch == 'master') {
                             doPromote(tag)
-                            doPush('master')
                         }
                     }
                 }
