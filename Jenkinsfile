@@ -1,5 +1,27 @@
 final def String ECR_REGISTRY = '542640492856.dkr.ecr.us-west-2.amazonaws.com'
 final def String ECR_REPO     = 'ecs-cleaner'
+final def String ECR_REGION   = 'us-west-2'  // For the above repo, not for the clean target
+
+def doCheckout() {
+    stage 'checkout'
+    checkout scm
+}
+
+def doBuild(tag) {
+    stage 'build'
+    sh "set +x && docker build -t ${tag} ."
+}
+
+def doPush(tag) {
+    stage 'push'
+    sh 'eval $(aws ecr get-login)'
+    sh "docker push $tag"
+}
+
+def String readIn(command, tmpfile) {
+    sh(command + ' > ' + tmpfile)
+    return readFile(tmpfile).trim()
+}
 
 node('trusty && vendci') {
     wrap([$class: 'AnsiColorBuildWrapper']) {
@@ -17,7 +39,11 @@ node('trusty && vendci') {
                     def commit = readIn('git rev-parse --short HEAD', 'GIT_COMMIT');
                     def branch = readIn('git rev-parse --abbrev-ref HEAD', 'GIT_BRANCH');
 
-                    withEnv(["GIT_COMMIT=${commit}", "GIT_BRANCH=${branch}"]) {
+                    withEnv([
+                            "GIT_COMMIT=${commit}",
+                            "GIT_BRANCH=${branch}",
+                            "AWS_DEFAULT_REGION=${ECR_REGION}"
+                    ]) {
                         def tag = "${ECR_REGISTRY}/${ECR_REPO}:${commit}"
                         echo "Building for ${branch}/${commit}: ${tag}"
 
@@ -28,25 +54,4 @@ node('trusty && vendci') {
             }
         }
     }
-}
-
-def doCheckout() {
-    stage 'checkout'
-    checkout scm
-}
-
-def String readIn(command, tmpfile) {
-    sh(command + ' > ' + tmpfile)
-    return readFile(tmpfile).trim()
-}
-
-def doBuild(tag) {
-    stage 'build'
-    sh "set +x && docker build -t ${tag} ."
-}
-
-def doPush(tag) {
-    stage 'push'
-    sh 'eval $(aws ecr get-login)'
-    sh "docker push $tag"
 }
