@@ -37,7 +37,7 @@ def doCheckout() {
 
 def String readIn(command, tmpfile) {
     sh(command + ' > ' + tmpfile)
-    return readFile(tmpfile)
+    return readFile(tmpfile).trim()
 }
 
 def doBuild(tag) {
