@@ -1,6 +1,6 @@
-final String ECR_REGISTRY = '542640492856.dkr.ecr.us-west-2.amazonaws.com'
-final String ECR_REPO     = 'ecs-cleaner'
-final String ECR_REGION   = 'us-west-2'  // For the above repo, not for the clean target
+ECR_REGISTRY = '542640492856.dkr.ecr.us-west-2.amazonaws.com'
+ECR_REPO     = 'ecs-cleaner'
+ECR_REGION   = 'us-west-2'  // For the above repo, not for the clean target
 
 def doCheckout() {
     stage 'checkout'
@@ -21,10 +21,10 @@ def doPush(String tag) {
     sh "docker push $tag"
 }
 
-def doPromote(tag) {
+def doPromote(tag, masterTag) {
     stage 'promote'
-    sh "docker tag ${tag} ${ECR_REGISTRY}/${ECR_REPO}:master"
-    sh "docker push ${ECR_REGISTRY}/${ECR_REPO}:master"
+    sh "docker tag ${tag} ${masterTag}"
+    sh "docker push ${masterTag}"
 }
 
 node('trusty && vendci') {
@@ -40,6 +40,7 @@ node('trusty && vendci') {
                     def commit = doCheckout()
                     def branch = env.BRANCH_NAME
                     def tag = "${ECR_REGISTRY}/${ECR_REPO}:${commit}"
+                    def masterTag = "${ECR_REGISTRY}/${ECR_REPO}:master"
 
                     withEnv([
                             "GIT_COMMIT=${commit}",
@@ -51,7 +52,7 @@ node('trusty && vendci') {
                         doPush(tag)
 
                         if (branch == 'master') {
-                            doPromote(tag)
+                            doPromote(tag, masterTag)
                         }
                     }
                 }
