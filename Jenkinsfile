@@ -15,7 +15,7 @@ node('trusty && vendci') {
                     doCheckout()
 
                     def commit = readIn('git rev-parse --short HEAD', 'GIT_COMMIT');
-                    def branch = readIn('git rev-parse --symbolic HEAD', 'GIT_BRANCH');
+                    def branch = readIn('git rev-parse --abbrev-ref HEAD', 'GIT_BRANCH');
 
                     withEnv(["GIT_COMMIT=${commit}", "GIT_BRANCH=${branch}"]) {
                         def tag = "${ECR_REGISTRY}/${ECR_REPO}:${commit}"
