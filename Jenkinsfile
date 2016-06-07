@@ -1,3 +1,6 @@
+final String ECR_REGISTRY = '542640492856.dkr.ecr.us-west-2.amazonaws.com'
+final String ECR_REPO     = 'ecs-cleaner'
+
 node('trusty && vendci') {
     wrap([$class: 'AnsiColorBuildWrapper']) {
         wrap([$class: 'TimestamperBuildWrapper']) {
@@ -8,9 +11,13 @@ node('trusty && vendci') {
                                          credentialsId: 'ecr-access',
                                          secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                                  ]]) {
-                    git_commit = doCheckout()
 
-                    withEnv(["GIT_COMMIT=${git_commit}"]) {
+                    doCheckout()
+
+                    commit = readIn('git rev-parse --short HEAD', 'GIT_COMMIT');
+                    branch = readIn('git rev-parse --symbolic HEAD', 'GIT_BRANCH');
+
+                    withEnv(["GIT_COMMIT=${commit}", "GIT_BRANCH=${branch}"]) {
                         tag = doBuild()
                         doPush(tag)
                     }
@@ -23,19 +30,21 @@ node('trusty && vendci') {
 def doCheckout() {
     stage 'checkout'
     checkout scm
-
-    sh('git rev-parse HEAD | head -c 7 > GIT_COMMIT')
-    return readFile('GIT_COMMIT')
 }
 
-def string doBuild() {
+def String readIn(String command, String tmpfile) {
+    sh(command + ' > ' + tmpfile)
+    return readFile(tmpfile)
+}
+
+def String doBuild() {
     stage 'build'
-    tag = '542640492856.dkr.ecr.us-west-2.amazonaws.com/ecs-cleaner:$GIT_COMMIT'
+    tag = "${ECR_REGISTRY}/${ECR_REPO}:\$GIT_COMMIT"
     sh "docker build -t ${tag} ."
     return tag
 }
 
-def doPush(string tag) {
+def doPush(String tag) {
     stage 'push'
     sh "docker push $tag"
 }
