@@ -48,6 +48,9 @@ node('trusty && vendci') {
                         doBuild(tag)
                         doPush(tag)
 
+                        sh "env | grep master"
+                        echo env
+
                         if (env.BRANCH_NAME == 'master') {
                             doPromote(tag)
                         }
