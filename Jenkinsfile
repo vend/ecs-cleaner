@@ -6,7 +6,8 @@ def doCheckout() {
     stage 'checkout'
     checkout scm
 
-    sh 'env | grep master'
+    sh('git rev-parse --short HEAD > GIT_COMMIT')
+    return readFile('GIT_COMMIT').trim()
 }
 
 def doBuild(tag) {
@@ -20,9 +21,9 @@ def doPush(tag) {
     sh "docker push $tag"
 }
 
-def String readIn(command, tmpfile) {
-    sh(command + ' > ' + tmpfile)
-    return readFile(tmpfile).trim()
+def doPromote(tag) {
+    sh "docker tag ${tag} master"
+    sh "docker push master"
 }
 
 node('trusty && vendci') {
@@ -35,22 +36,21 @@ node('trusty && vendci') {
                     credentialsId: 'ecr-access',
                     secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                 ]]) {
-
-                    doCheckout()
-
-                    def commit = readIn('git rev-parse --short HEAD', 'GIT_COMMIT');
-                    def branch = readIn('git rev-parse --abbrev-ref HEAD', 'GIT_BRANCH');
+                    def commit = doCheckout()
+                    def tag = "${ECR_REGISTRY}/${ECR_REPO}:${commit}"
 
                     withEnv([
                             "GIT_COMMIT=${commit}",
-                            "GIT_BRANCH=${branch}",
                             "AWS_DEFAULT_REGION=${ECR_REGION}"
                     ]) {
-                        def tag = "${ECR_REGISTRY}/${ECR_REPO}:${commit}"
                         echo "Building for ${branch}/${commit}: ${tag}"
 
                         doBuild(tag)
                         doPush(tag)
+
+                        if (env.BRANCH_NAME === 'master') {
+                            doPromote(tag)
+                        }
                     }
                 }
             }
