@@ -9,4 +9,6 @@ RUN npm install
 
 COPY . /usr/src/app
 
+RUN npm run build
+
 ENTRYPOINT [ "./index.js" ]
