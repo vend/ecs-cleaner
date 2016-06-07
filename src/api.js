@@ -59,7 +59,31 @@ export default class EcsTaskCleanerApi {
           return Promise.join(
             describe,
             this.describeServices(cluster, res.nextToken),
-            (current, accumulator) => Promise.resolve(accumulator.concat(current))
+            (cur, tail) => Promise.resolve(cur.concat(tail))
+          );
+        }
+
+        return describe;
+      });
+  }
+
+  describeImages(registryId, repositoryName, nextToken = null) {
+    debug('Listing images in repo', registryId, repositoryName, nextToken ? 'paging' : 'first-page');
+
+    return this.ecr.listImagesAsync({ registryId, repositoryName, nextToken })
+      .then(res => {
+        const describe = this.ecr.batchGetImageAsync({
+          imageIds: res.imageIds,
+          repositoryName,
+          registryId,
+        })
+          .then(descriptions => descriptions.images);
+
+        if (res.nextToken && false) {
+          return Promise.join(
+            describe,
+            this.describeImages(registryId, repositoryName, res.nextToken),
+            (cur, tail) => Promise.resolve(cur.concat(tail))
           );
         }
 
@@ -164,5 +188,47 @@ export default class EcsTaskCleanerApi {
   describeRepositories(...names) {
     return this.ecr.describeRepositoriesAsync({ repositoryNames: names })
       .then(res => res.repositories);
+  }
+
+  /**
+   * Describes a single repository
+   *
+   * @param name
+   * @returns {Promise.<Object>}
+   */
+  describeRepository(name) {
+    return this.describeRepositories(name)
+      .then(descriptions => descriptions[0]);
+  }
+
+  /**
+   * @return {?Date}
+   */
+  getImageCreatedDate({ imageManifest }) {
+    if (!imageManifest) {
+      return null;
+    }
+
+    const manifest = JSON.parse(imageManifest);
+
+    if (!manifest || !manifest.history || !Array.isArray(manifest.history)) {
+      return null;
+    }
+
+    for (const entry of manifest.history) {
+      if (!entry || !entry.v1Compatibility) continue;
+
+      const parsed = JSON.parse(entry.v1Compatibility);
+      if (!parsed || !parsed.created) continue;
+
+      const date = new Date(parsed.created);
+      if (date) return date;
+    }
+
+    return null;
+  }
+
+  deleteImage({ imageId, repositoryName, registryId }) {
+    return this.ecr.batchDeleteImageAsync({ imageIds: [ imageId ], repositoryName, registryId });
   }
 }
