@@ -10,11 +10,6 @@ def doCheckout() {
     return readFile('GIT_COMMIT').trim()
 }
 
-def doErrata() {
-    stage 'errata'
-    sh "sudo puppet agent --enable; sudo puppet agent -tdv --tags=bash; sudo puppet agent --disable"
-}
-
 def doBuild(tag) {
     stage 'build'
     sh "docker build -t ${tag} ."
@@ -50,7 +45,6 @@ node('trusty && vendci') {
                     ]) {
                         echo "Building for ${branch}/${commit}: ${tag}"
 
-                        doErrata()
                         doBuild(tag)
                         doPush(tag)
 
