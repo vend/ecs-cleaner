@@ -42,7 +42,7 @@ def String readIn(command, tmpfile) {
 
 def doBuild(tag) {
     stage 'build'
-    sh "docker build -t ${tag} ."
+    sh "docker build -t ${tag} ." //
 }
 
 def doPush(tag) {
