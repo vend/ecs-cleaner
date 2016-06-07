@@ -79,7 +79,7 @@ export default class EcsTaskCleanerApi {
         })
           .then(descriptions => descriptions.images);
 
-        if (res.nextToken && false) {
+        if (res.nextToken) {
           return Promise.join(
             describe,
             this.describeImages(registryId, repositoryName, res.nextToken),
