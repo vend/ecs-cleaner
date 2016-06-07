@@ -11,7 +11,8 @@ node('trusty && vendci') {
                     git_commit = doCheckout()
 
                     withEnv(["GIT_COMMIT=${git_commit}"]) {
-                        doBuild()
+                        tag = doBuild()
+                        doPush(tag)
                     }
                 }
             }
@@ -27,6 +28,14 @@ def doCheckout() {
     return readFile('GIT_COMMIT')
 }
 
-def doBuild() {
-    sh 'docker build -t $GIT_COMMIT .'
+def string doBuild() {
+    stage 'build'
+    tag = '542640492856.dkr.ecr.us-west-2.amazonaws.com/ecs-cleaner:$GIT_COMMIT'
+    sh "docker build -t ${tag} ."
+    return tag
+}
+
+def doPush(string tag) {
+    stage 'push'
+    sh "docker push $tag"
 }
