@@ -38,7 +38,17 @@ export function handler(config, log, ec2) {
   }
 
   function shouldTerminateInstance(instance) {
-    return moment(instance.LaunchTime).toDate() < CUTOFF_DATE;
+    const id = instance.InstanceId;
+    const launched = moment(instance.LaunchTime);
+    const should = launched.toDate() < CUTOFF_DATE;
+
+    log.debug(
+      should
+        ? `Deciding for ${id}: will terminate because launched ${launched.fromNow()}`
+        : `Deciding for ${id}: won't terminate because launched ${launched.fromNow()}`
+    );
+
+    return should;
   }
 
   function terminateInstance(instance, argv) {

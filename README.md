@@ -164,3 +164,15 @@ $ ecs-cleaner ec2-stale-agent key-deadbeef             # Dry run against key key
 $ ecs-cleaner ec2-stale-agent keypair-deadbeef --apply # Actually terminate stale instances
 $ ecs-cleaner ec2-stale-agent --help                   # Get usage information
 ```
+
+#### Example Output
+
+```
+[notice] Cleaning out ec2 instances that were launched with key some-key-name
+[notice] You specified --apply, so we're about to start actually terminating these instances
+[debug] Deciding for i-a2874ee7: won't terminate because launched 2 hours ago
+[debug] Deciding for i-ab7cb2ee: won't terminate because launched 2 hours ago
+[debug] Deciding for i-b6844df3: will terminate because launched 3 days ago
+[notice] About to terminate i-b6844df3
+[notice] All done!
+```
