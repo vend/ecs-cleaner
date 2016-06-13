@@ -14,7 +14,7 @@ export const describe = 'Removes stale EC2 build agents';
 export function builder() {
   return yargs => yargs
     .usage('ecs-cleaner ec2-stale-agent <key-name>')
-    .demand(2);
+    .demand(2, 2, 'You should specify the EC2 keypair name to filter the list of instances');
 }
 
 export function handler(config, log, ec2) {
@@ -38,14 +38,15 @@ export function handler(config, log, ec2) {
   }
 
   function shouldTerminateInstance(instance) {
-    const id = instance.InstanceId;
     const launched = moment(instance.LaunchTime);
+
+    const fromNow = launched.fromNow();
     const should = launched.toDate() < CUTOFF_DATE;
 
-    log.debug(
+    log.notice(
       should
-        ? `Deciding for ${id}: will terminate because launched ${launched.fromNow()}`
-        : `Deciding for ${id}: won't terminate because launched ${launched.fromNow()}`
+        ? `Deciding for ${instance.InstanceId}: will terminate because launched ${fromNow}`
+        : `Deciding for ${instance.InstanceId}: won't terminate because launched ${fromNow}`
     );
 
     return should;

@@ -40,23 +40,24 @@ const log = container.cli.log;
 const cli = yargs
   .strict()
   .usage('Usage: ecs-cleaner <command> [options]')
-  .global(['verbose', 'quiet'])
   .options({
+    apply: {
+      alias: 'a',
+      describe: 'Actually apply the operation (default is always a dry run)',
+      global: true,
+      type: 'boolean',
+    },
     verbose: {
-      type: 'count',
       alias: 'v',
       describe: 'Output more information (provide multiple times for more noise)',
+      global: true,
+      type: 'count',
     },
     quiet: {
-      type: 'count',
       alias: 'q',
       describe: 'Output less information (provide multiple times for less noise)',
-    },
-    apply: {
-      type: 'boolean',
-      alias: 'a',
-      default: false,
-      describe: 'Actually apply the operation (default is a dry run)',
+      global: true,
+      type: 'count',
     },
   })
   .help('help');

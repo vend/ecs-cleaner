@@ -12,12 +12,7 @@ export const describe = 'Marks stale and unused ECS tasks as inactive';
 
 export function builder() {
   return yargs => yargs
-    .option('a', {
-      alias: 'apply',
-      default: false,
-      describe: 'Actually apply the operation (default is a dry run)',
-      type: 'boolean',
-    });
+    .usage('ecs-cleaner ecs-task');
 }
 
 export function handler(config, log, api) {

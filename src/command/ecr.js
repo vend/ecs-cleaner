@@ -13,13 +13,7 @@ export const describe = 'Removes stale and unused ECR images';
 export function builder() {
   return yargs => yargs
     .usage('ecs-cleaner ecr <repo>')
-    .option('a', {
-      alias: 'apply',
-      default: false,
-      describe: 'Actually apply the operation (default is a dry run)',
-      type: 'boolean',
-    })
-    .demand(2);
+    .demand(2, 2, 'You should specify an ECR repository name to clean');
 }
 
 export function handler(config, log, api) {
