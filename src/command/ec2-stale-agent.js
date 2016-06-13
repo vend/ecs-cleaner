@@ -57,12 +57,12 @@ export function handler(config, log, ec2) {
     log.info(
       argv.apply
         ? `About to terminate ${id}`
-        : `Would have terminated ${id} but doing a dry run`
+        : `Would have terminated ${id}, but doing a dry run`
     );
 
-    return ec2.terminateInstancesAsync({
+    return argv.apply ? ec2.terminateInstancesAsync({
       InstanceIds: [id],
-    });
+    }) : Promise.resolve();
   }
 
   return (argv) => {
