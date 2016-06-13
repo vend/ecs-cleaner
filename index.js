@@ -52,6 +52,12 @@ const cli = yargs
       alias: 'q',
       describe: 'Output less information (provide multiple times for less noise)',
     },
+    apply: {
+      type: 'boolean',
+      alias: 'a',
+      default: false,
+      describe: 'Actually apply the operation (default is a dry run)',
+    },
   })
   .help('help');
 

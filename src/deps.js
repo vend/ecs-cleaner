@@ -2,15 +2,16 @@ import libdebug from 'debug';
 import Bottle from 'bottlejs';
 
 import api from './api';
-import argv from './argv';
 
 import awsEcs from './aws/ecs';
 import awsEcr from './aws/ecr';
+import awsEc2 from './aws/ec2';
 
 import { default as log, Log as LogSettings } from './util/log';
 
 import * as commandEcsTask from './command/ecs-task';
 import * as commandEcr from './command/ecr';
+import * as commandEc2StaleAgent from './command/ec2-stale-agent';
 
 const debug = libdebug('ecs-cleaner:deps');
 
@@ -21,11 +22,11 @@ export default (config) => {
   deps.constant('config', config);
   deps.service('cli.log', () => log);
 
-  deps.service('api', api, 'argv', 'aws.ecs', 'aws.ecr');
-  deps.service('argv', argv);
+  deps.service('api', api, 'config', 'aws.ecs', 'aws.ecr');
 
   deps.service('aws.ecs', awsEcs, 'config');
   deps.service('aws.ecr', awsEcr, 'config');
+  deps.service('aws.ec2', awsEc2, 'config');
 
   /**
    * @param {string} name
@@ -45,6 +46,7 @@ export default (config) => {
   const commands = [
     command('ecs-task', commandEcsTask, ['api']),
     command('ecr', commandEcr, ['api']),
+    command('ec2-stale-agent', commandEc2StaleAgent, ['aws.ec2']),
   ];
 
   deps.constant('cli.commands', commands);
