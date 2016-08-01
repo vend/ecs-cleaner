@@ -1,7 +1,6 @@
 import libdebug from 'debug';
 import Promise from 'bluebird';
 import _ from 'lodash';
-import Api from './../api';
 
 const debug = libdebug('ecs-cleaner:command:clean');
 

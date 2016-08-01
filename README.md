@@ -116,14 +116,14 @@ $ ecs-cleaner ecs-task
 Removes stale ECR images from a single repository, specified by name. Images are considered stale if:
 
   * They aren't in use by an active ECS task definition, and
-  * They are older than the configurable number of days (default 14 days)
+  * They are older than the configurable number of days (default 7 days)
 
 #### Examples
 
 ```sh
-$ ecs-cleaner ecr repo_name         # Dry run against repo_name in $AWS_DEFAULT_REGION
-$ ecs-cleaner ecr repo_name --apply # Actually remove stale images
-$ ecs-cleaner ecr --help            # Get usage information
+$ ecs-cleaner ecr repo_name                      # Dry run against repo_name in $AWS_DEFAULT_REGION
+$ ecs-cleaner ecr repo_name --apply --cutoff=14  # Actually remove stale images older than 14 days
+$ ecs-cleaner ecr --help                         # Get usage information
 ```
 
 #### Example Output

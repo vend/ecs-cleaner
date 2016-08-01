@@ -5,6 +5,9 @@ import _ from 'lodash';
 const debug = libdebug('ecs-cleaner:api');
 
 export default class EcsTaskCleanerApi {
+  /**
+   * @type {Object}
+   */
   config;
 
   /**

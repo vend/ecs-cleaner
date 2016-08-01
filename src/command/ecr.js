@@ -4,15 +4,18 @@ import moment from 'moment';
 
 const debug = libdebug('ecs-cleaner:command:ecr');
 
-const CUTOFF = 1000 * 60 * 60 * 24 * 7;
-const CUTOFF_DATE = new Date(Date.now() - CUTOFF);
-
 export const command = 'ecr';
 export const describe = 'Removes stale and unused ECR images';
 
 export function builder() {
   return yargs => yargs
     .usage('ecs-cleaner ecr <repo>')
+    .option('cutoff', {
+      alias: 'c',
+      default: 7,
+      requiresArg: true,
+      number: true,
+    })
     .demand(2, 2, 'You should specify an ECR repository name to clean');
 }
 
@@ -46,9 +49,13 @@ export function handler(config, log, api) {
   }
 
   /**
+   * @param {Promise.<Object>} repo
+   * @param {{ imageId: Object }} image
+   * @param {Promise.<Object>} active
+   * @param {Date} cutoff
    * @returns {Promise.<boolean>}
    */
-  function decideIfImageShouldBeDeleted(repo, image, active) {
+  function decideIfImageShouldBeDeleted(repo, image, active, cutoff) {
     if (!image.imageId.imageTag) {
       log.debug(`Deleting ${image.imageId.imageDigest} because image does not have a tag`);
       return Promise.resolve(true);
@@ -64,7 +71,7 @@ export function handler(config, log, api) {
     const created = api.getImageCreatedDate(image);
     const fromNow = moment(created).fromNow();
 
-    if (created && created > CUTOFF_DATE) {
+    if (created && created > cutoff) {
       log.debug(`Not deleting ${tag} because it was created ${fromNow}`);
       return Promise.resolve(false);
     }
@@ -94,12 +101,24 @@ export function handler(config, log, api) {
       : Promise.resolve();
   }
 
+  /**
+   * @param {number} days
+   * @returns {Date}
+   */
+  function getCutoffDate(days) {
+    return new Date(Date.now() - (days * 24 * 60 * 60 * 1000));
+  }
+
+  /**
+   * @param {{_: Array, cutoff: number}} argv
+   */
   return (argv) => {
     const repoName = argv._[1];
     debug(`Cleaning out repo ${repoName}`);
 
     const repo = api.describeRepository(repoName);
     const active = getActiveImagesInRepo(repo);
+    const cutoff = getCutoffDate(argv.cutoff);
 
     if (argv.apply) {
       log.notice(`You specified --apply, so we're about to start actually deleting these images\n`);
@@ -109,7 +128,7 @@ export function handler(config, log, api) {
 
     return Promise.map(
       getAllImagesInRepo(repo),
-      image => decideIfImageShouldBeDeleted(repo, image, active)
+      image => decideIfImageShouldBeDeleted(repo, image, active, cutoff)
         .then(shouldBeDeleted => {
           if (shouldBeDeleted) {
             return deleteImage(image, argv.apply);
