@@ -105,7 +105,7 @@ export default class EcsTaskCleanerApi {
   }
 
   /**
-   * Gets basically all task definitions in an account
+   * Gets basically all active task definitions in an account
    *
    * @param nextToken
    * @returns {Promise.<Object[]>}
@@ -113,15 +113,21 @@ export default class EcsTaskCleanerApi {
   getCandidateTaskDefinitions(nextToken = null) {
     debug('Getting candidate task definitions', nextToken ? 'paging' : 'first-page');
 
-    return this.ecs.listTaskDefinitionsAsync({ nextToken })
+    return this.ecs.listTaskDefinitionsAsync({
+      nextToken,
+      status: 'ACTIVE',
+    })
       .then(res => {
         if (res.nextToken) {
+
           return this.getCandidateTaskDefinitions(res.nextToken)
-            .then(next => next.concat(res.taskDefinitionArns));
+            .then(next => {
+              return Promise.resolve(res.taskDefinitionArns.concat(next))
+            });
         }
 
-        return res.taskDefinitionArns;
-      });
+        return Promise.resolve(res.taskDefinitionArns);
+      })
   }
 
   deregisterTaskDefinition(defn) {
