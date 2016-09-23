@@ -7,9 +7,7 @@ Cleans up stale task definitions, images or instances from ECS, ECR and EC2.
 Pull the latest stable ecs-cleaner container via Docker:
 
 ```sh
-ecr=542640492856.dkr.ecr.us-west-2.amazonaws.com
-ecr-login
-docker pull $ecr/ecs-cleaner:master
+docker pull quay.io/vend/ecs-cleaner:latest
 ```
 
 ## Usage
@@ -21,7 +19,7 @@ Inside the container, ecs-cleaner runs as the root user. So, one option for pass
 in configuration is using environment variables, and the `-e` flag to `docker run`, e.g.
 
 ```
-sudo docker run -e AWS_REGION=us-west-2 -e AWS_ACCESS_KEY_ID=foo $ecr/ecs-cleaner:master <subcommand>
+sudo docker run -e AWS_REGION=us-west-2 -e AWS_ACCESS_KEY_ID=foo quay.io/vend/ecs-cleaner:latest <subcommand>
 ```
 
 But this isn't recommended, because it can leak your credentials into `ps`, `docker inspect`,
@@ -31,7 +29,7 @@ configuration files.
 The user is root inside the container, so mount your config files at `/root/.aws`.
 
 ```
-sudo docker run -e AWS_REGION=us-west-2 -v ~/.aws:/root/.aws $ecr/ecs-cleaner:master <subcommand>
+sudo docker run -e AWS_REGION=us-west-2 -v ~/.aws:/root/.aws quay.io/vend/ecs-cleaner:latest <subcommand>
 ```
 
 ### CLI usage
