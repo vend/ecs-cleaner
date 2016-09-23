@@ -6,8 +6,8 @@ def doCheckout() {
     stage 'checkout'
     checkout scm
 
-    sh('git rev-parse --short HEAD > GIT_COMMIT')
-    return readFile('GIT_COMMIT').trim()
+    sh('git rev-parse --short HEAD > GIT_SHORT')
+    return readFile('GIT_SHORT').trim()
 }
 
 def doBuild(tag) {
