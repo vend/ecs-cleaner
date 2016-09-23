@@ -16,6 +16,7 @@ def doCheckout() {
 
 def doBuild(tag) {
     stage('build') {
+        sh "docker pull node:6.2"
         sh "docker build -t ${tag} ."
     }
 }
